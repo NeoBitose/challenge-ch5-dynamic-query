@@ -26,6 +26,14 @@ module.exports = (sequelize, DataTypes) => {
           len: [4, 100],
         },
       },
+      adminEmail: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+        validate: {
+          isEmail: true,
+        },
+      },
       userId: {
         type: DataTypes.INTEGER,
         references: {
