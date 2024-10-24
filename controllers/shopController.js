@@ -1,4 +1,4 @@
-const { Op, where } = require("sequelize");
+const { Op } = require("sequelize");
 const { Shops, Products, Users } = require("../models");
 
 const createShop = async (req, res) => {
@@ -52,10 +52,11 @@ const createShop = async (req, res) => {
 const getAllShop = async (req, res) => {
   try {
     // 1. jaga request query
-    const { shopName, productName, stock, page = 1, limit = 10 } = req.query;
+    const { shopName, adminEmail, productName, stock, page = 1, limit = 10 } = req.query;
     // condition shop
-    const condition = {};
-    if (shopName) condition.name = { [Op.iLike]: `%${shopName}%` }
+    const shopCondition = {};
+    if (shopName) shopCondition.name = { [Op.iLike]: `%${shopName}%` }
+    if (adminEmail) shopCondition.adminEmail = { [Op.iLike]: `%${adminEmail}%` }
     // condition product
     const productCondition = {};
     if (productName) productCondition.name = { [Op.iLike]: `%${productName}%` }
@@ -75,11 +76,11 @@ const getAllShop = async (req, res) => {
         {
           model: Users,
           as: "user",
-          attributes: ["name"]
+          attributes: ["name", "role"]
         },
       ],
       attributes: ["name", "adminEmail"],
-      where: condition,
+      where: shopCondition,
       limit: limit,
       offset: offset
     });
@@ -87,8 +88,8 @@ const getAllShop = async (req, res) => {
     // count data shop 
     const totalData = shops.count;
     // count total page
-    const totalPages = totalData / limit;
-    // console.log(totalPages);
+    const totalPages = Math.ceil(totalData / limit);
+    console.log(shops);
 
     res.status(200).json({
       status: "Success",
@@ -98,7 +99,7 @@ const getAllShop = async (req, res) => {
         totalData,
         totalPages,
         page,
-        shops: shops.rows,
+        shops,
       },
     });
   } catch (error) {

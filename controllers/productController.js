@@ -70,7 +70,7 @@ const getAllProduct = async (req, res) => {
         {
           model: Shops,
           as: "shop",
-          attributes: ["name"],
+          attributes: ["name", "adminEmail"],
           where: shopCondition
         },
       ],
