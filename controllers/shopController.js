@@ -52,17 +52,19 @@ const createShop = async (req, res) => {
 const getAllShop = async (req, res) => {
   try {
     // 1. jaga request query
-    const { shopName, adminEmail, productName, stock } = req.query;
+    const { shopName, productName, stock, page = 1, limit = 10 } = req.query;
+    // condition shop
     const condition = {};
-    if (shopName) condition.name = { [Op.iLike]: `%${shopName}%`}
+    if (shopName) condition.name = { [Op.iLike]: `%${shopName}%` }
+    // condition product
     const productCondition = {};
-    if (productName) productCondition.name = { [Op.iLike]: `%${productName}%`}
+    if (productName) productCondition.name = { [Op.iLike]: `%${productName}%` }
     if (stock) productCondition.stock = stock
 
-    // 2. dinamis filter
-    // if (`req.query.${id} = ${req.query.id}`)
+    // setting offset
+    const offset = (page - 1) * limit;
 
-    const shops = await Shops.findAll({
+    const shops = await Shops.findAndCountAll({
       include: [
         {
           model: Products,
@@ -77,15 +79,26 @@ const getAllShop = async (req, res) => {
         },
       ],
       attributes: ["name", "adminEmail"],
-      where: condition
+      where: condition,
+      limit: limit,
+      offset: offset
     });
+
+    // count data shop 
+    const totalData = shops.count;
+    // count total page
+    const totalPages = totalData / limit;
+    // console.log(totalPages);
 
     res.status(200).json({
       status: "Success",
       message: "Success get shops data",
       isSuccess: true,
       data: {
-        shops,
+        totalData,
+        totalPages,
+        page,
+        shops: shops.rows,
       },
     });
   } catch (error) {
